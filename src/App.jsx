@@ -239,8 +239,10 @@ const App = () => {
   // Helper to calculate basic metrics
   const calculateAllMetrics = (dataset) => {
     if (!dataset || dataset.length === 0) return null;
-    const clientProjects = dataset.filter(d => d.project_type_mapped === 'Client Project');
-    const totalProjects = clientProjects.length;
+    
+    // Fixed: count all projects in the current filtered dataset
+    const totalProjects = dataset.length; 
+    
     const apCost = dataset.reduce((acc, curr) => acc + (curr.apCost || 0), 0);
     const thbCost = dataset.reduce((acc, curr) => acc + (curr.totalThb || 0), 0);
     const targetQuota = dataset.reduce((acc, curr) => acc + (curr.quota || 0), 0);
