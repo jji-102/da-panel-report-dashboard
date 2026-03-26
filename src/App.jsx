@@ -12,7 +12,7 @@ import {
 // --- Configuration ---
 const MAIN_DATA_SHEET_ID = '1f1cUsWsRcS-I7VdVEVj1oLyalTtJLlCVnzUiWh77ff0';
 const AUTH_DATA_SHEET_ID = '144YySNLbFulSD3bRVeRCxe5PoyrLPl5-vvuVLS8uVds';
-const DASHBOARD_VERSION = "07-0326OP-DA"; // Update Version: 07-0326OP-DA (Interactive Categories)
+const DASHBOARD_VERSION = "08-0326OP-DA"; // Update Version: 08-0326OP-DA (Adjust IR status)
 const RATE_CARD_URL = "https://ratecard-gold-theta.vercel.app/";
 
 const getCsvUrl = (id) => `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv`;
@@ -149,8 +149,8 @@ const formatNumber = (val) => new Intl.NumberFormat('en-US').format(val || 0);
 const getIrStatus = (val) => {
   const v = Math.round(val);
   if (v >= 80) return { label: 'High', color: 'text-emerald-600', bg: 'bg-emerald-50' };
-  if (v >= 30) return { label: 'Mid', color: 'text-amber-600', bg: 'bg-amber-50' };
-  if (v > 5) return { label: 'Low', color: 'text-orange-600', bg: 'bg-orange-50' };
+  if (v >= 40) return { label: 'Mid', color: 'text-amber-600', bg: 'bg-amber-50' };
+  if (v > 10) return { label: 'Low', color: 'text-orange-600', bg: 'bg-orange-50' };
   return { label: 'Alert', color: 'text-rose-600', bg: 'bg-rose-50' };
 };
 
