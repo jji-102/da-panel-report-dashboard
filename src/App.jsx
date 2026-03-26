@@ -6,13 +6,13 @@ import {
 import { 
   LayoutDashboard, Filter, Layers, DollarSign, Users, 
   Target, CheckCircle, Smartphone, AlertTriangle, Activity, 
-  FileText, Clock, BarChart2, TrendingUp, TrendingDown, ChevronDown, Calendar, Award, Zap, XCircle, Check, Lock, LogOut, Loader2, Briefcase, X, Info, Tag, Search, Hash, Type, Percent, Globe, ExternalLink
+  FileText, Clock, BarChart2, TrendingUp, TrendingDown, ChevronDown, Calendar, Award, Zap, XCircle, Check, Lock, LogOut, Loader2, Briefcase, X, Info, Tag, Search, Hash, Type, Percent, Globe, ExternalLink, List
 } from 'lucide-react';
 
 // --- Configuration ---
 const MAIN_DATA_SHEET_ID = '1f1cUsWsRcS-I7VdVEVj1oLyalTtJLlCVnzUiWh77ff0';
 const AUTH_DATA_SHEET_ID = '144YySNLbFulSD3bRVeRCxe5PoyrLPl5-vvuVLS8uVds';
-const DASHBOARD_VERSION = "05-0326OP-DA"; // Update Version: 05-0326OP-DA (Added Rate Card Link)
+const DASHBOARD_VERSION = "07-0326OP-DA"; // Update Version: 07-0326OP-DA (Interactive Categories)
 const RATE_CARD_URL = "https://ratecard-gold-theta.vercel.app/";
 
 const getCsvUrl = (id) => `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv`;
@@ -222,7 +222,7 @@ const SummaryCard = ({ title, value, subValue, icon: Icon, color = "blue", compa
   );
 };
 
-const WordCloud = ({ data }) => {
+const WordCloud = ({ data, onCategoryDoubleClick }) => {
   const validData = Array.isArray(data) ? data : [];
   const maxVal = Math.max(...validData.map(d => d.value || 0), 1);
   const colors = ['#6366f1', '#ec4899', '#8b5cf6', '#10b981', '#f59e0b', '#3b82f6'];
@@ -231,7 +231,13 @@ const WordCloud = ({ data }) => {
       {validData.map((item, idx) => {
         const size = 0.8 + ((item.value || 0) / maxVal) * 1.5;
         return (
-          <span key={idx} style={{ fontSize: `${size}rem`, color: colors[idx % colors.length], opacity: 0.8 + ((item.value || 0) / maxVal) * 0.2 }} className="font-bold px-2 py-1 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors cursor-default" title={`${item.name}: ${item.value} Projects`}>
+          <span 
+            key={idx} 
+            style={{ fontSize: `${size}rem`, color: colors[idx % colors.length], opacity: 0.8 + ((item.value || 0) / maxVal) * 0.2 }} 
+            className="font-bold px-3 py-1 bg-gray-50 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-all cursor-pointer select-none border border-transparent hover:border-indigo-100" 
+            title={`Double-click to view all ${item.name} projects`}
+            onDoubleClick={() => onCategoryDoubleClick(item.name)}
+          >
             {String(item.name)}
           </span>
         )
@@ -300,9 +306,9 @@ const ProjectModal = ({ project, onClose }) => {
   ];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-indigo-950/40 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-indigo-950/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
       <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
-        <div className="bg-indigo-600 p-6 flex justify-between items-center text-white">
+        <div className="bg-indigo-600 p-6 flex justify-between items-center text-white shadow-lg">
           <div className="flex items-center gap-3">
             <div className="bg-white/20 p-2 rounded-xl"><Briefcase className="w-6 h-6" /></div>
             <div>
@@ -312,7 +318,6 @@ const ProjectModal = ({ project, onClose }) => {
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors"><X className="w-6 h-6" /></button>
         </div>
-
         <div className="flex-1 overflow-y-auto p-8 bg-gray-50/50">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {dataGroups.map((group, idx) => (
@@ -338,14 +343,63 @@ const ProjectModal = ({ project, onClose }) => {
             ))}
           </div>
         </div>
-
         <div className="p-6 bg-white border-t border-gray-100 flex justify-end">
-          <button onClick={onClose} className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg">Close</button>
+          <button onClick={onClose} className="px-8 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg active:scale-95">Close</button>
         </div>
       </div>
     </div>
   );
 };
+
+// --- Category Modal ---
+const CategoryProjectsModal = ({ category, projects, onProjectSelect, onClose }) => {
+  if (!category) return null;
+  return (
+    <div className="fixed inset-0 z-[105] flex items-center justify-center bg-indigo-950/40 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+      <div className="bg-white w-full max-w-5xl h-[80vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom-8 duration-300">
+        <div className="bg-indigo-800 p-6 flex justify-between items-center text-white">
+          <div className="flex items-center gap-3">
+            <div className="bg-white/20 p-2 rounded-xl"><Layers className="w-6 h-6" /></div>
+            <div>
+              <h2 className="text-xl font-bold leading-tight">Category: {category}</h2>
+              <p className="text-indigo-200 text-sm font-medium">Found {projects.length} projects in this category.</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors"><X className="w-6 h-6" /></button>
+        </div>
+        <div className="p-4 bg-amber-50 border-b border-amber-100 text-amber-700 text-xs font-bold uppercase tracking-widest text-center">
+          Double-click any project name to view deep analysis
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 bg-white">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {projects.map((p, idx) => (
+              <div 
+                key={idx} 
+                onDoubleClick={() => onProjectSelect(p)}
+                className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer group"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md uppercase">{p.project_no}</span>
+                  <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase ${p.kpi_39 === 'Pass' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                    {p.kpi_39}
+                  </span>
+                </div>
+                <h4 className="text-sm font-bold text-gray-800 line-clamp-2 mb-3 group-hover:text-indigo-700 transition-colors">{p.project_name}</h4>
+                <div className="flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase border-t pt-3">
+                  <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {formatNumber(p.totalComplete)} Complete</div>
+                  <div className="flex items-center gap-1"><Target className="w-3 h-3" /> {Math.round(p.percentComplete)}% Goal</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end">
+          <button onClick={onClose} className="px-6 py-2 bg-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-300 transition-all">Close</button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // --- Main App ---
 const App = () => {
@@ -362,6 +416,7 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [displayCount, setDisplayCount] = useState(10);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedCategoryName, setSelectedCategoryName] = useState(null);
 
   const calculateAllMetrics = (dataset) => {
     if (!dataset || dataset.length === 0) return null;
@@ -380,7 +435,6 @@ const App = () => {
     const validLoi = dataset.filter(d => (d.loi || 0) > 0);
     const avgLoi = validLoi.length ? validLoi.reduce((a, b) => a + (b.loi || 0), 0) / validLoi.length : 0;
     
-    // Summary level CPI logic
     const totalApComplete = dataset.reduce((acc, curr) => acc + (curr.apComplete || 0), 0);
     const avgCpiUsd = totalApComplete > 0 ? apCost / totalApComplete : 0;
     const avgCpiThb = totalApComplete > 0 ? thbCost / totalApComplete : 0;
@@ -448,9 +502,23 @@ const App = () => {
     const thirdPartyRate = filteredData.length ? (thirdPartyProjects / filteredData.length) * 100 : 0;
     const validWorkingDay = filteredData.filter(d => d.workingDay > 0);
     const avgWorkingDay = validWorkingDay.length ? validWorkingDay.reduce((a, b) => a + (b.workingDay || 0), 0) / validWorkingDay.length : 0;
-    const buckets = { less70: filteredData.filter(d => d.percentComplete < 70).length, bet70_90: filteredData.filter(d => d.percentComplete >= 70 && d.percentComplete <= 90).length, more90: filteredData.filter(d => d.percentComplete > 90 && d.percentComplete < 100).length, more100: filteredData.filter(d => d.percentComplete >= 100).length };
+    
+    const apMeowData = filteredData.map(d => ({
+      ...d,
+      apMeowPct: d.quota > 0 ? (((d.apComplete || 0) + (d.meowComplete || 0)) / d.quota) * 100 : 0
+    }));
+
+    const buckets = { 
+      less70: apMeowData.filter(d => d.apMeowPct < 70).length, 
+      bet70_90: apMeowData.filter(d => d.apMeowPct >= 70 && d.apMeowPct <= 90).length, 
+      more90: apMeowData.filter(d => d.apMeowPct > 90 && d.apMeowPct < 100).length, 
+      more100: apMeowData.filter(d => d.apMeowPct >= 100).length 
+    };
+
+    const avgPercentComplete = apMeowData.length ? apMeowData.reduce((a, b) => a + b.apMeowPct, 0) / apMeowData.length : 0;
+
     const mbokakrPassCount = filteredData.filter(d => (d.quota || 0) > 0 && (((d.apComplete || 0) + (d.meowComplete || 0)) / d.quota) >= 1).length;
-    const avgPercentComplete = filteredData.length ? filteredData.reduce((a, b) => a + (b.percentComplete || 0), 0) / filteredData.length : 0;
+    
     const catStats = {};
     filteredData.forEach(d => { if (d.category) { if (!catStats[d.category]) catStats[d.category] = { sum: 0, count: 0 }; catStats[d.category].sum += (d.percentComplete || 0); catStats[d.category].count++; } });
     let bestCategory = { name: 'N/A', val: 0 };
@@ -472,6 +540,11 @@ const App = () => {
     }
     return { ...current, mobileRate, thirdPartyRate, avgWorkingDay, buckets, mbokakrPassCount, avgPercentComplete, bestCategory, bestProject, comparison, prevYearLabel };
   }, [filteredData, data, filters.year, filters.projectType]);
+
+  const categoryProjects = useMemo(() => {
+    if (!selectedCategoryName) return [];
+    return filteredData.filter(d => d.category === selectedCategoryName);
+  }, [filteredData, selectedCategoryName]);
 
   const scatterData = filteredData.filter(d => (d.ir || 0) > 0 && (d.loi || 0) > 0).map(d => ({ x: d.ir, y: d.loi, z: d.totalComplete, name: d.project_name }));
   const categoryData = useMemo(() => {
@@ -636,7 +709,7 @@ const App = () => {
                 <div className="md:w-1/3 flex flex-col justify-center border-t md:border-t-0 md:border-l border-gray-200 pt-6 md:pt-0 md:pl-8 space-y-6">
                     <div>
                         <p className="text-sm text-gray-500 font-medium mb-1 flex items-center gap-1"><Zap className="w-3 h-3"/> Overall Avg. Completion</p>
-                        <div className="flex items-baseline gap-2"><span className="text-4xl font-extrabold text-indigo-600">{stats.avgPercentComplete.toFixed(1)}%</span><span className="text-xs text-gray-400">across all projects</span></div>
+                        <div className="flex items-baseline gap-2"><span className="text-4xl font-extrabold text-indigo-600">{stats.avgPercentComplete.toFixed(1)}%</span><span className="text-xs text-gray-400">across all projects (AP+Meow)</span></div>
                     </div>
                     <div className="space-y-4">
                         <div>
@@ -671,8 +744,13 @@ const App = () => {
              </div>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-             <div className="flex justify-between items-center mb-6"><h2 className="text-xl font-bold text-gray-700 flex items-center gap-2"><Layers className="w-5 h-5"/> Top Categories</h2></div>
-             <div className="h-80 border-2 border-dashed border-gray-100 rounded-lg flex items-center justify-center"><WordCloud data={categoryData} /></div>
+             <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-700 flex items-center gap-2"><Layers className="w-5 h-5"/> Top Categories</h2>
+             </div>
+             <div className="h-80 border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/30">
+                <WordCloud data={categoryData} onCategoryDoubleClick={(name) => setSelectedCategoryName(name)} />
+             </div>
+             <p className="text-[10px] text-center text-gray-400 font-bold uppercase mt-4 tracking-widest">Double-click category name to explore projects</p>
           </div>
       </div>
 
@@ -761,6 +839,15 @@ const App = () => {
           </div>
       </div>
 
+      {/* Popups */}
+      {selectedCategoryName && (
+        <CategoryProjectsModal 
+          category={selectedCategoryName} 
+          projects={categoryProjects} 
+          onProjectSelect={(p) => setSelectedProject(p)}
+          onClose={() => setSelectedCategoryName(null)} 
+        />
+      )}
       {selectedProject && <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />}
     </div>
   );
