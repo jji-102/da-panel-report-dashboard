@@ -6,12 +6,13 @@ import {
 import { 
   LayoutDashboard, Filter, Layers, DollarSign, Users, 
   Target, CheckCircle, Smartphone, AlertTriangle, Activity, 
-  FileText, Clock, BarChart2, TrendingUp, TrendingDown, ChevronDown, Calendar, Award, Zap, XCircle, Check, Lock, LogOut, Loader2, Briefcase
+  FileText, Clock, BarChart2, TrendingUp, TrendingDown, ChevronDown, Calendar, Award, Zap, XCircle, Check, Lock, LogOut, Loader2, Briefcase, X, Info, Tag
 } from 'lucide-react';
 
 // --- Configuration ---
 const MAIN_DATA_SHEET_ID = '1f1cUsWsRcS-I7VdVEVj1oLyalTtJLlCVnzUiWh77ff0';
 const AUTH_DATA_SHEET_ID = '144YySNLbFulSD3bRVeRCxe5PoyrLPl5-vvuVLS8uVds';
+const DASHBOARD_VERSION = "1032025OP-DA"; // เวอร์ชันแดชบอร์ด: ครั้งที่ 1 เดือน 03 ปี 2025 OP-DA
 
 const getCsvUrl = (id) => `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv`;
 
@@ -222,6 +223,113 @@ const WordCloud = ({ data }) => {
   )
 }
 
+const ProjectModal = ({ project, onClose }) => {
+  if (!project) return null;
+
+  const dataGroups = [
+    {
+      title: "ข้อมูลพื้นฐาน (General Information)",
+      icon: Info,
+      items: [
+        { label: "รหัสโปรเจกต์", value: project.project_no },
+        { label: "ชื่อโปรเจกต์", value: project.project_name },
+        { label: "ประเภทโปรเจกต์", value: project.project_type_mapped },
+        { label: "ปี", value: project.year },
+        { label: "ไตรมาส", value: project.quater },
+        { label: "เดือน", value: project.month },
+        { label: "หมวดหมู่", value: project.category || 'N/A' },
+      ]
+    },
+    {
+      title: "ผลการดำเนินงาน (Performance)",
+      icon: Activity,
+      items: [
+        { label: "เป้าหมาย (Quota)", value: formatNumber(project.quota) },
+        { label: "จำนวน Completes ทั้งหมด", value: formatNumber((parseFloat(project.apComplete) || 0) + (parseFloat(project.meowComplete) || 0) + (parseFloat(project.fwComplete) || 0)) },
+        { label: "AP Completes", value: formatNumber(project.apComplete) },
+        { label: "Meow Completes", value: formatNumber(project.meowComplete) },
+        { label: "FW Completes", value: formatNumber(project.fwComplete) },
+        { label: "Bad Sample", value: formatNumber(project.badSample) },
+        { label: "เปอร์เซ็นต์ความสำเร็จ", value: `${(project.percentComplete || 0).toFixed(1)}%` },
+        { label: "อัตราตอบกลับ (IR%)", value: `${(project.ir || 0).toFixed(2)}%` },
+        { label: "ความยาวสอบถาม (LOI)", value: `${(project.loi || 0).toFixed(1)} นาที` },
+        { label: "ระยะเวลาทำงาน", value: `${(project.workingDay || 0).toFixed(1)} วัน` },
+      ]
+    },
+    {
+      title: "การเงินและต้นทุน (Financial & Costs)",
+      icon: DollarSign,
+      items: [
+        { label: "งบประมาณรวม (USD)", value: formatCurrency(project.apCost, 'USD') },
+        { label: "งบประมาณรวม (THB)", value: formatNumber(project.totalThb) + " THB" },
+        { label: "ต้นทุนต่อหน่วย (CPI USD)", value: formatCurrency(project.per_cpi_usd, 'USD') },
+        { label: "ต้นทุนต่อหน่วย (CPI THB)", value: (project.per_cpi_thb || 0).toFixed(2) + " THB" },
+        { label: "สถานะ KPI", value: project.kpi_39, status: true },
+      ]
+    },
+    {
+      title: "การใช้งาน Panel (Panel Usage)",
+      icon: Smartphone,
+      items: [
+        { label: "Mobile Usage", value: project.apMobile > 0 ? "Yes" : "No" },
+        { label: "3rd Party Usage", value: (project.ap3party > 0 || project.apRabbit > 0 || project.apPc > 0 || project.cint > 0) ? "Yes" : "No" },
+        { label: "Cint Usage", value: project.cint > 0 ? "Yes" : "No" },
+      ]
+    }
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-indigo-950/40 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+      <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+        {/* Modal Header */}
+        <div className="bg-indigo-600 p-6 flex justify-between items-center text-white">
+          <div className="flex items-center gap-3">
+            <div className="bg-white/20 p-2 rounded-xl">
+              <Briefcase className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold leading-tight">Project Details: {project.project_no}</h2>
+              <p className="text-indigo-100 text-sm font-medium opacity-90">{project.project_name}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Modal Content */}
+        <div className="flex-1 overflow-y-auto p-8 bg-gray-50/50">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {dataGroups.map((group, idx) => (
+              <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-gray-50">
+                  <group.icon className="w-5 h-5 text-indigo-500" />
+                  <h3 className="font-bold text-gray-700 text-sm uppercase tracking-wider">{group.title}</h3>
+                </div>
+                <div className="space-y-3">
+                  {group.items.map((item, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <span className="text-gray-500 font-medium">{item.label}</span>
+                      <span className={`font-bold text-right ${item.status ? (item.value === 'Pass' ? 'text-green-600' : 'text-red-500') : 'text-gray-800'}`}>
+                        {item.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Modal Footer */}
+        <div className="p-6 bg-white border-t border-gray-100 flex justify-end">
+          <button onClick={onClose} className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">Close Detail</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- Main App ---
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -235,6 +343,7 @@ const App = () => {
   const [data, setData] = useState([]);
   const [filters, setFilters] = useState({ projectType: ['Client Project'], month: [], year: [], quater: [] });
   const [displayCount, setDisplayCount] = useState(10);
+  const [selectedProject, setSelectedProject] = useState(null);
 
   // Helper to calculate basic metrics
   const calculateAllMetrics = (dataset) => {
@@ -502,10 +611,13 @@ const App = () => {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-extrabold text-indigo-900 tracking-tight">Panel Report Dashboard 2025</h1>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex flex-wrap items-center gap-2 mt-1">
             <span className="text-gray-500">Interactive Insights & Performance Overview</span>
             <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Role: {String(currentUser?.Role || 'User')}</span>
             <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ml-1">Auth: {String(currentUser?.Username || 'N/A')}</span>
+            <span className="text-xs bg-indigo-600 text-white px-3 py-0.5 rounded-full font-bold uppercase tracking-wider ml-1 flex items-center gap-1 shadow-sm">
+              <Tag className="w-3 h-3" /> Ver: {DASHBOARD_VERSION}
+            </span>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -689,42 +801,95 @@ const App = () => {
           </div>
       </div>
 
-      {/* Data Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-             <h2 className="text-xl font-bold text-gray-700 flex items-center gap-2"><FileText className="w-5 h-5"/> Project Details</h2>
-             <span className="text-sm text-gray-500">Showing {Math.min(displayCount, filteredData.length)} of {filteredData.length} Projects</span>
+      {/* Project Details Table */}
+      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden mb-12">
+          <div className="p-8 border-b border-gray-100 bg-white flex justify-between items-center">
+             <div>
+                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3"><FileText className="w-7 h-7 text-indigo-500"/> รายละเอียดโปรเจกต์ (Project Details)</h2>
+                <p className="text-gray-500 text-sm mt-1">Double click เพื่อดูรายละเอียดข้อมูลเชิงลึกของโปรเจกต์นั้นๆ</p>
+             </div>
+             <div className="flex items-center gap-4">
+                <span className="text-xs bg-indigo-50 text-indigo-600 px-4 py-2 rounded-full font-bold uppercase tracking-wider border border-indigo-100">ทั้งหมด {filteredData.length} โปรเจกต์</span>
+             </div>
           </div>
           <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[1500px]">
                   <thead>
-                      <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                          <th className="p-4 font-semibold">Month</th><th className="p-4 font-semibold">Project No</th><th className="p-4 font-semibold w-1/4">Project Name</th><th className="p-4 font-semibold">Type</th><th className="p-4 font-semibold text-right">Quota</th><th className="p-4 font-semibold text-right">Completes</th><th className="p-4 font-semibold text-right">%</th><th className="p-4 font-semibold text-right">Total Cost (THB)</th><th className="p-4 font-semibold text-center">Status</th>
+                      <tr className="bg-gray-50/80 text-gray-500 text-[11px] uppercase tracking-[0.1em]">
+                          <th className="p-5 font-bold border-b border-gray-100">เดือน/ปี</th>
+                          <th className="p-5 font-bold border-b border-gray-100">Project No</th>
+                          <th className="p-5 font-bold border-b border-gray-100 w-64">ชื่อโปรเจกต์</th>
+                          <th className="p-5 font-bold border-b border-gray-100">หมวดหมู่</th>
+                          <th className="p-5 font-bold border-b border-gray-100 text-right">Quota</th>
+                          <th className="p-5 font-bold border-b border-gray-100 text-right">Completes</th>
+                          <th className="p-5 font-bold border-b border-gray-100 text-right">Bad Sample</th>
+                          <th className="p-5 font-bold border-b border-gray-100 text-right">IR%</th>
+                          <th className="p-5 font-bold border-b border-gray-100 text-right">LOI</th>
+                          <th className="p-5 font-bold border-b border-gray-100 text-right">Working Day</th>
+                          <th className="p-5 font-bold border-b border-gray-100 text-right">Cost (USD)</th>
+                          <th className="p-5 font-bold border-b border-gray-100 text-right">CPI (USD)</th>
+                          <th className="p-5 font-bold border-b border-gray-100 text-right">CPI (THB)</th>
+                          <th className="p-5 font-bold border-b border-gray-100 text-center">Status</th>
                       </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
-                      {filteredData.slice(0, displayCount).map((row, idx) => (
-                          <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                              <td className="p-4 text-sm text-gray-600">{String(row.month)}</td>
-                              <td className="p-4 text-sm font-medium text-indigo-600">{String(row.project_no)}</td>
-                              <td className="p-4 text-sm text-gray-800 truncate max-w-xs" title={String(row.project_name)}>{String(row.project_name)}</td>
-                              <td className="p-4 text-sm text-gray-500"><span className={`px-2 py-1 rounded-full text-xs ${row.project_type_mapped === 'Incident Check' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'}`}>{row.project_type_mapped === 'Incident Check' ? 'Incident' : 'Client'}</span></td>
-                              <td className="p-4 text-sm text-gray-600 text-right">{formatNumber(row.quota)}</td>
-                              <td className="p-4 text-sm text-gray-600 text-right font-medium">{formatNumber(row.totalComplete)}</td>
-                              <td className="p-4 text-sm text-right"><span className={`font-bold ${(row.percentComplete || 0) >= 100 ? 'text-green-600' : (row.percentComplete || 0) < 70 ? 'text-red-500' : 'text-yellow-600'}`}>{(row.percentComplete || 0).toFixed(1)}%</span></td>
-                              <td className="p-4 text-sm text-gray-600 text-right">{formatNumber(row.totalThb)}</td>
-                              <td className="p-4 text-center">{row.kpi_39 === 'Pass' ? <CheckCircle className="w-5 h-5 text-green-500 mx-auto" /> : <AlertTriangle className="w-5 h-5 text-red-400 mx-auto" />}</td>
-                          </tr>
-                      ))}
+                  <tbody className="divide-y divide-gray-100 bg-white">
+                      {filteredData.slice(0, displayCount).map((row, idx) => {
+                          const allCompletes = (parseFloat(row.apComplete) || 0) + (parseFloat(row.meowComplete) || 0) + (parseFloat(row.fwComplete) || 0);
+                          return (
+                            <tr 
+                              key={idx} 
+                              onDoubleClick={() => setSelectedProject(row)}
+                              className="hover:bg-indigo-50/30 transition-all cursor-pointer group"
+                            >
+                                <td className="p-5">
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-bold text-gray-800">{String(row.month)}</span>
+                                    <span className="text-[10px] text-gray-400 font-bold uppercase">{row.quater} / {row.year}</span>
+                                  </div>
+                                </td>
+                                <td className="p-5">
+                                  <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-colors">{String(row.project_no)}</span>
+                                </td>
+                                <td className="p-5">
+                                  <p className="text-sm text-gray-800 font-medium line-clamp-2" title={String(row.project_name)}>{String(row.project_name)}</p>
+                                </td>
+                                <td className="p-5">
+                                  <span className="text-xs text-gray-500 font-semibold">{row.category || 'N/A'}</span>
+                                </td>
+                                <td className="p-5 text-sm text-gray-600 text-right font-medium">{formatNumber(row.quota)}</td>
+                                <td className="p-5 text-sm text-gray-800 text-right font-extrabold">{formatNumber(allCompletes)}</td>
+                                <td className="p-5 text-sm text-rose-500 text-right font-bold">{formatNumber(row.badSample)}</td>
+                                <td className="p-5 text-sm text-orange-600 text-right font-bold">{(row.ir || 0).toFixed(1)}%</td>
+                                <td className="p-5 text-sm text-gray-600 text-right font-medium">{(row.loi || 0).toFixed(1)} m</td>
+                                <td className="p-5 text-sm text-gray-600 text-right font-medium">{(row.workingDay || 0).toFixed(1)} d</td>
+                                <td className="p-5 text-sm text-emerald-600 text-right font-bold">{formatCurrency(row.apCost, 'USD')}</td>
+                                <td className="p-5 text-sm text-emerald-600 text-right font-bold">{(row.per_cpi_usd || 0).toFixed(2)}</td>
+                                <td className="p-5 text-sm text-indigo-600 text-right font-bold">{(row.per_cpi_thb || 0).toFixed(2)}</td>
+                                <td className="p-5 text-center">
+                                  {row.kpi_39 === 'Pass' ? 
+                                    <div className="flex items-center justify-center bg-emerald-50 w-8 h-8 rounded-full mx-auto"><CheckCircle className="w-5 h-5 text-emerald-500" /></div> : 
+                                    <div className="flex items-center justify-center bg-rose-50 w-8 h-8 rounded-full mx-auto"><AlertTriangle className="w-5 h-5 text-rose-500" /></div>
+                                  }
+                                </td>
+                            </tr>
+                          );
+                      })}
                   </tbody>
               </table>
           </div>
-          {displayCount < filteredData.length && (
-              <div className="p-4 text-center border-t border-gray-100">
-                  <button onClick={() => setDisplayCount(prev => prev + 10)} className="px-6 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">Load More Projects <ChevronDown className="w-4 h-4 inline ml-1"/></button>
-              </div>
-          )}
+          <div className="p-8 text-center border-t border-gray-100 bg-gray-50/30">
+              {displayCount < filteredData.length ? (
+                <button onClick={() => setDisplayCount(prev => prev + 10)} className="px-10 py-3 bg-white border border-gray-200 rounded-2xl text-sm font-bold text-gray-700 hover:border-indigo-400 hover:text-indigo-600 transition-all shadow-sm hover:shadow-md flex items-center gap-2 mx-auto">
+                   Load More Projects <ChevronDown className="w-4 h-4"/>
+                </button>
+              ) : (
+                <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">End of project list</p>
+              )}
+          </div>
       </div>
+
+      {/* Double-Click Popup Modal */}
+      {selectedProject && <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />}
     </div>
   );
 };
