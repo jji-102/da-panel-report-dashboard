@@ -6,13 +6,13 @@ import {
 import { 
   LayoutDashboard, Filter, Layers, DollarSign, Users, 
   Target, CheckCircle, Smartphone, AlertTriangle, Activity, 
-  FileText, Clock, BarChart2, TrendingUp, TrendingDown, ChevronDown, Calendar, Award, Zap, XCircle, Check, Lock, LogOut, Loader2, Briefcase, X, Info, Tag
+  FileText, Clock, BarChart2, TrendingUp, TrendingDown, ChevronDown, Calendar, Award, Zap, XCircle, Check, Lock, LogOut, Loader2, Briefcase, X, Info, Tag, Search
 } from 'lucide-react';
 
 // --- Configuration ---
 const MAIN_DATA_SHEET_ID = '1f1cUsWsRcS-I7VdVEVj1oLyalTtJLlCVnzUiWh77ff0';
 const AUTH_DATA_SHEET_ID = '144YySNLbFulSD3bRVeRCxe5PoyrLPl5-vvuVLS8uVds';
-const DASHBOARD_VERSION = "1032025OP-DA"; // เวอร์ชันแดชบอร์ด: ครั้งที่ 1 เดือน 03 ปี 2025 OP-DA
+const DASHBOARD_VERSION = "02-0326OP-DA"; // Dashboard Version: Ver 2, Month 03, Year 2026 OP-DA
 
 const getCsvUrl = (id) => `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv`;
 
@@ -228,52 +228,52 @@ const ProjectModal = ({ project, onClose }) => {
 
   const dataGroups = [
     {
-      title: "ข้อมูลพื้นฐาน (General Information)",
+      title: "General Information",
       icon: Info,
       items: [
-        { label: "รหัสโปรเจกต์", value: project.project_no },
-        { label: "ชื่อโปรเจกต์", value: project.project_name },
-        { label: "ประเภทโปรเจกต์", value: project.project_type_mapped },
-        { label: "ปี", value: project.year },
-        { label: "ไตรมาส", value: project.quater },
-        { label: "เดือน", value: project.month },
-        { label: "หมวดหมู่", value: project.category || 'N/A' },
+        { label: "Project No.", value: project.project_no },
+        { label: "Project Name", value: project.project_name },
+        { label: "Project Type", value: project.project_type_mapped },
+        { label: "Year", value: project.year },
+        { label: "Quarter", value: project.quater },
+        { label: "Month", value: project.month },
+        { label: "Category", value: project.category || 'N/A' },
       ]
     },
     {
-      title: "ผลการดำเนินงาน (Performance)",
+      title: "Performance Metrics",
       icon: Activity,
       items: [
-        { label: "เป้าหมาย (Quota)", value: formatNumber(project.quota) },
-        { label: "จำนวน Completes ทั้งหมด", value: formatNumber((parseFloat(project.apComplete) || 0) + (parseFloat(project.meowComplete) || 0) + (parseFloat(project.fwComplete) || 0)) },
+        { label: "Target Quota", value: formatNumber(project.quota) },
+        { label: "Total Completes", value: formatNumber((parseFloat(project.apComplete) || 0) + (parseFloat(project.meowComplete) || 0) + (parseFloat(project.fwComplete) || 0)) },
         { label: "AP Completes", value: formatNumber(project.apComplete) },
         { label: "Meow Completes", value: formatNumber(project.meowComplete) },
         { label: "FW Completes", value: formatNumber(project.fwComplete) },
-        { label: "Bad Sample", value: formatNumber(project.badSample) },
-        { label: "เปอร์เซ็นต์ความสำเร็จ", value: `${(project.percentComplete || 0).toFixed(1)}%` },
-        { label: "อัตราตอบกลับ (IR%)", value: `${(project.ir || 0).toFixed(2)}%` },
-        { label: "ความยาวสอบถาม (LOI)", value: `${(project.loi || 0).toFixed(1)} นาที` },
-        { label: "ระยะเวลาทำงาน", value: `${(project.workingDay || 0).toFixed(1)} วัน` },
+        { label: "Bad Samples", value: formatNumber(project.badSample) },
+        { label: "Completion Rate", value: `${(project.percentComplete || 0).toFixed(1)}%` },
+        { label: "Incidence Rate (IR%)", value: `${(project.ir || 0).toFixed(2)}%` },
+        { label: "Length of Interview (LOI)", value: `${(project.loi || 0).toFixed(1)} min` },
+        { label: "Working Days", value: `${(project.workingDay || 0).toFixed(1)} d` },
       ]
     },
     {
-      title: "การเงินและต้นทุน (Financial & Costs)",
+      title: "Financial Analysis",
       icon: DollarSign,
       items: [
-        { label: "งบประมาณรวม (USD)", value: formatCurrency(project.apCost, 'USD') },
-        { label: "งบประมาณรวม (THB)", value: formatNumber(project.totalThb) + " THB" },
-        { label: "ต้นทุนต่อหน่วย (CPI USD)", value: formatCurrency(project.per_cpi_usd, 'USD') },
-        { label: "ต้นทุนต่อหน่วย (CPI THB)", value: (project.per_cpi_thb || 0).toFixed(2) + " THB" },
-        { label: "สถานะ KPI", value: project.kpi_39, status: true },
+        { label: "Total Budget (USD)", value: formatCurrency(project.apCost, 'USD') },
+        { label: "Total Budget (THB)", value: formatNumber(project.totalThb) + " THB" },
+        { label: "Unit Cost (CPI USD)", value: formatCurrency(project.per_cpi_usd, 'USD') },
+        { label: "Unit Cost (CPI THB)", value: (project.per_cpi_thb || 0).toFixed(2) + " THB" },
+        { label: "KPI Status", value: project.kpi_39, status: true },
       ]
     },
     {
-      title: "การใช้งาน Panel (Panel Usage)",
+      title: "Panel Distribution",
       icon: Smartphone,
       items: [
         { label: "Mobile Usage", value: project.apMobile > 0 ? "Yes" : "No" },
-        { label: "3rd Party Usage", value: (project.ap3party > 0 || project.apRabbit > 0 || project.apPc > 0 || project.cint > 0) ? "Yes" : "No" },
-        { label: "Cint Usage", value: project.cint > 0 ? "Yes" : "No" },
+        { label: "3rd Party Access", value: (project.ap3party > 0 || project.apRabbit > 0 || project.apPc > 0 || project.cint > 0) ? "Yes" : "No" },
+        { label: "Cint Integration", value: project.cint > 0 ? "Yes" : "No" },
       ]
     }
   ];
@@ -288,7 +288,7 @@ const ProjectModal = ({ project, onClose }) => {
               <Briefcase className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold leading-tight">Project Details: {project.project_no}</h2>
+              <h2 className="text-xl font-bold leading-tight">Project No: {project.project_no}</h2>
               <p className="text-indigo-100 text-sm font-medium opacity-90">{project.project_name}</p>
             </div>
           </div>
@@ -323,7 +323,7 @@ const ProjectModal = ({ project, onClose }) => {
 
         {/* Modal Footer */}
         <div className="p-6 bg-white border-t border-gray-100 flex justify-end">
-          <button onClick={onClose} className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">Close Detail</button>
+          <button onClick={onClose} className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">Close</button>
         </div>
       </div>
     </div>
@@ -342,6 +342,7 @@ const App = () => {
   
   const [data, setData] = useState([]);
   const [filters, setFilters] = useState({ projectType: ['Client Project'], month: [], year: [], quater: [] });
+  const [searchTerm, setSearchTerm] = useState('');
   const [displayCount, setDisplayCount] = useState(10);
   const [selectedProject, setSelectedProject] = useState(null);
 
@@ -437,13 +438,24 @@ const App = () => {
   };
 
   const filteredData = useMemo(() => {
-    return data.filter(d => 
-      (filters.projectType.length === 0 || filters.projectType.includes(d.project_type_mapped)) &&
-      (filters.month.length === 0 || filters.month.includes(d.month)) &&
-      (filters.year.length === 0 || filters.year.includes(String(d.year))) &&
-      (filters.quater.length === 0 || filters.quater.includes(d.quater))
-    );
-  }, [data, filters]);
+    return data.filter(d => {
+      const matchesFilters = (
+        (filters.projectType.length === 0 || filters.projectType.includes(d.project_type_mapped)) &&
+        (filters.month.length === 0 || filters.month.includes(d.month)) &&
+        (filters.year.length === 0 || filters.year.includes(String(d.year))) &&
+        (filters.quater.length === 0 || filters.quater.includes(d.quater))
+      );
+
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = (
+        searchTerm === '' ||
+        d.project_no?.toLowerCase().includes(searchLower) ||
+        d.project_name?.toLowerCase().includes(searchLower)
+      );
+
+      return matchesFilters && matchesSearch;
+    });
+  }, [data, filters, searchTerm]);
 
   const stats = useMemo(() => {
     const current = calculateAllMetrics(filteredData) || { totalProjects:0, thbCost:0, apCost:0, targetQuota:0, allComplete:0, apComplete:0, meowComplete:0, fwComplete:0, badSample:0, allAnswers:0, avgIr:0, avgLoi:0, avgCpiUsd:0, avgCpiThb:0, kpiRate:0 };
@@ -803,30 +815,42 @@ const App = () => {
 
       {/* Project Details Table */}
       <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden mb-12">
-          <div className="p-8 border-b border-gray-100 bg-white flex justify-between items-center">
+          <div className="p-8 border-b border-gray-100 bg-white flex flex-col md:flex-row md:justify-between md:items-center gap-4">
              <div>
-                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3"><FileText className="w-7 h-7 text-indigo-500"/> รายละเอียดโปรเจกต์ (Project Details)</h2>
-                <p className="text-gray-500 text-sm mt-1">Double click เพื่อดูรายละเอียดข้อมูลเชิงลึกของโปรเจกต์นั้นๆ</p>
+                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3"><FileText className="w-7 h-7 text-indigo-500"/> Project Details</h2>
+                <p className="text-gray-500 text-sm mt-1">Double-click any row for in-depth project insights.</p>
              </div>
-             <div className="flex items-center gap-4">
-                <span className="text-xs bg-indigo-50 text-indigo-600 px-4 py-2 rounded-full font-bold uppercase tracking-wider border border-indigo-100">ทั้งหมด {filteredData.length} โปรเจกต์</span>
+             <div className="flex flex-col sm:flex-row items-center gap-3">
+                <div className="relative w-full sm:w-80">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Search by ID or Name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  />
+                </div>
+                <span className="text-xs bg-indigo-50 text-indigo-600 px-4 py-2 rounded-full font-bold uppercase tracking-wider border border-indigo-100 whitespace-nowrap">
+                  Total: {filteredData.length} Projects
+                </span>
              </div>
           </div>
           <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[1500px]">
                   <thead>
                       <tr className="bg-gray-50/80 text-gray-500 text-[11px] uppercase tracking-[0.1em]">
-                          <th className="p-5 font-bold border-b border-gray-100">เดือน/ปี</th>
-                          <th className="p-5 font-bold border-b border-gray-100">Project No</th>
-                          <th className="p-5 font-bold border-b border-gray-100 w-64">ชื่อโปรเจกต์</th>
-                          <th className="p-5 font-bold border-b border-gray-100">หมวดหมู่</th>
+                          <th className="p-5 font-bold border-b border-gray-100">Period</th>
+                          <th className="p-5 font-bold border-b border-gray-100">Project ID</th>
+                          <th className="p-5 font-bold border-b border-gray-100 w-64">Project Name</th>
+                          <th className="p-5 font-bold border-b border-gray-100">Category</th>
                           <th className="p-5 font-bold border-b border-gray-100 text-right">Quota</th>
                           <th className="p-5 font-bold border-b border-gray-100 text-right">Completes</th>
-                          <th className="p-5 font-bold border-b border-gray-100 text-right">Bad Sample</th>
+                          <th className="p-5 font-bold border-b border-gray-100 text-right">Bad Samples</th>
                           <th className="p-5 font-bold border-b border-gray-100 text-right">IR%</th>
                           <th className="p-5 font-bold border-b border-gray-100 text-right">LOI</th>
-                          <th className="p-5 font-bold border-b border-gray-100 text-right">Working Day</th>
-                          <th className="p-5 font-bold border-b border-gray-100 text-right">Cost (USD)</th>
+                          <th className="p-5 font-bold border-b border-gray-100 text-right">Working Days</th>
+                          <th className="p-5 font-bold border-b border-gray-100 text-right">Total Cost</th>
                           <th className="p-5 font-bold border-b border-gray-100 text-right">CPI (USD)</th>
                           <th className="p-5 font-bold border-b border-gray-100 text-right">CPI (THB)</th>
                           <th className="p-5 font-bold border-b border-gray-100 text-center">Status</th>
@@ -880,7 +904,7 @@ const App = () => {
           <div className="p-8 text-center border-t border-gray-100 bg-gray-50/30">
               {displayCount < filteredData.length ? (
                 <button onClick={() => setDisplayCount(prev => prev + 10)} className="px-10 py-3 bg-white border border-gray-200 rounded-2xl text-sm font-bold text-gray-700 hover:border-indigo-400 hover:text-indigo-600 transition-all shadow-sm hover:shadow-md flex items-center gap-2 mx-auto">
-                   Load More Projects <ChevronDown className="w-4 h-4"/>
+                   Load More <ChevronDown className="w-4 h-4"/>
                 </button>
               ) : (
                 <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">End of project list</p>
