@@ -6,13 +6,13 @@ import {
 import { 
   LayoutDashboard, Filter, Layers, DollarSign, Users, 
   Target, CheckCircle, Smartphone, AlertTriangle, Activity, 
-  FileText, Clock, BarChart2, TrendingUp, TrendingDown, ChevronDown, Calendar, Award, Zap, XCircle, Check, Lock, LogOut, Loader2, Briefcase, X, Info, Tag, Search, Hash, Type, Percent, Globe, ExternalLink, List
+  FileText, Clock, BarChart2, TrendingUp, TrendingDown, ChevronDown, Calendar, Award, Zap, XCircle, Check, Lock, LogOut, Loader2, Briefcase, X, Info, Tag, Search, Hash, Type, Percent, Globe, ExternalLink, List, ArrowUpAZ, ArrowDownZA, ArrowUpDown
 } from 'lucide-react';
 
 // --- Configuration ---
 const MAIN_DATA_SHEET_ID = '1f1cUsWsRcS-I7VdVEVj1oLyalTtJLlCVnzUiWh77ff0';
 const AUTH_DATA_SHEET_ID = '144YySNLbFulSD3bRVeRCxe5PoyrLPl5-vvuVLS8uVds';
-const DASHBOARD_VERSION = "10-0326OP-DA"; // Update Version: 10-0326OP-DA (Advanced Comparison View)
+const DASHBOARD_VERSION = "11-0326OP-DA"; // Update Version: 11-0326OP-DA (Header Sort & Filter)
 const RATE_CARD_URL = "https://ratecard-gold-theta.vercel.app/";
 
 const getCsvUrl = (id) => `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv`;
@@ -429,6 +429,8 @@ const App = () => {
   const [data, setData] = useState([]);
   const [filters, setFilters] = useState({ projectType: ['Client Project'], month: [], year: [], quater: [] });
   const [searchTerm, setSearchTerm] = useState('');
+  const [columnFilters, setColumnFilters] = useState({});
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [displayCount, setDisplayCount] = useState(10);
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedCategoryName, setSelectedCategoryName] = useState(null);
@@ -496,19 +498,63 @@ const App = () => {
     else { setLoginError('Username หรือ Password ไม่ถูกต้อง'); }
   };
 
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const handleColumnFilter = (key, value) => {
+    setColumnFilters(prev => ({ ...prev, [key]: value }));
+  };
+
   const filteredData = useMemo(() => {
-    return data.filter(d => {
-      const matchesFilters = (
+    // 1. Apply Filters & Global Search
+    let result = data.filter(d => {
+      const matchesGlobalFilters = (
         (filters.projectType.length === 0 || filters.projectType.includes(d.project_type_mapped)) &&
         (filters.month.length === 0 || filters.month.includes(d.month)) &&
         (filters.year.length === 0 || filters.year.includes(String(d.year))) &&
         (filters.quater.length === 0 || filters.quater.includes(d.quater))
       );
+
       const searchLower = searchTerm.toLowerCase();
-      const matchesSearch = (searchTerm === '' || d.project_no?.toLowerCase().includes(searchLower) || d.project_name?.toLowerCase().includes(searchLower));
-      return matchesFilters && matchesSearch;
+      const matchesGlobalSearch = (searchTerm === '' || d.project_no?.toLowerCase().includes(searchLower) || d.project_name?.toLowerCase().includes(searchLower));
+
+      // 2. Apply Column Filters
+      const matchesColumnFilters = Object.keys(columnFilters).every(key => {
+        if (!columnFilters[key]) return true;
+        const val = String(d[key] || '').toLowerCase();
+        return val.includes(columnFilters[key].toLowerCase());
+      });
+
+      return matchesGlobalFilters && matchesGlobalSearch && matchesColumnFilters;
     });
-  }, [data, filters, searchTerm]);
+
+    // 3. Apply Sorting
+    if (sortConfig.key) {
+      result.sort((a, b) => {
+        let aVal = a[sortConfig.key];
+        let bVal = b[sortConfig.key];
+
+        // Handle numeric fields
+        if (!isNaN(aVal) && !isNaN(bVal) && typeof aVal !== 'string') {
+          return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+        
+        // Handle strings
+        aVal = String(aVal || '').toLowerCase();
+        bVal = String(bVal || '').toLowerCase();
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return result;
+  }, [data, filters, searchTerm, columnFilters, sortConfig]);
 
   const stats = useMemo(() => {
     const current = calculateAllMetrics(filteredData) || { totalProjects:0, thbCost:0, apCost:0, targetQuota:0, allComplete:0, apComplete:0, meowComplete:0, fwComplete:0, badSample:0, allAnswers:0, avgIr:0, avgLoi:0, avgCpiUsd:0, avgCpiThb:0, kpiRate:0 };
@@ -663,6 +709,50 @@ const App = () => {
       </div>
     );
   }
+
+  // --- Header Cell Component ---
+  const SortableHeader = ({ label, sortKey, filterKey, className = "" }) => {
+    const isSorted = sortConfig.key === sortKey;
+    return (
+      <th className={`p-4 border-b border-gray-100 group ${className}`}>
+        <div className="flex flex-col gap-2">
+          <button 
+            onClick={() => sortKey && handleSort(sortKey)}
+            className={`flex items-center gap-1.5 hover:text-indigo-600 transition-colors w-full ${sortKey ? 'cursor-pointer' : 'cursor-default'}`}
+          >
+            <span className="font-bold text-[10px] uppercase tracking-wider">{label}</span>
+            {sortKey && (
+              <span className={`transition-opacity ${isSorted ? 'opacity-100' : 'opacity-0 group-hover:opacity-40'}`}>
+                {isSorted ? (
+                  sortConfig.direction === 'asc' ? <ArrowUpAZ className="w-3 h-3 text-indigo-500" /> : <ArrowDownZA className="w-3 h-3 text-indigo-500" />
+                ) : <ArrowUpDown className="w-3 h-3" />}
+              </span>
+            )}
+          </button>
+          {filterKey && (
+            <div className="relative">
+              <input 
+                type="text" 
+                placeholder={`Filter...`}
+                value={columnFilters[filterKey] || ''}
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => handleColumnFilter(filterKey, e.target.value)}
+                className="w-full bg-gray-100 border-none rounded-md px-2 py-1 text-[9px] focus:ring-1 focus:ring-indigo-300 focus:bg-white transition-all font-medium"
+              />
+              {(columnFilters[filterKey]) && (
+                <button 
+                  onClick={() => handleColumnFilter(filterKey, '')}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-rose-500"
+                >
+                  <X className="w-2.5 h-2.5" />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </th>
+    );
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen font-sans text-gray-800 p-8">
@@ -822,7 +912,7 @@ const App = () => {
              <div className="flex flex-col sm:flex-row items-center gap-3">
                 <div className="relative w-full sm:w-80">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input type="text" placeholder="Search by ID or Name..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all" />
+                  <input type="text" placeholder="Global Search (ID/Name)..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all" />
                 </div>
                 <span className="text-xs bg-indigo-50 text-indigo-600 px-4 py-2 rounded-full font-bold uppercase tracking-wider border border-indigo-100 whitespace-nowrap">Total: {filteredData.length} Projects</span>
              </div>
@@ -830,21 +920,21 @@ const App = () => {
           <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[1500px]">
                   <thead>
-                      <tr className="bg-gray-50/80 text-gray-500 text-[11px] uppercase tracking-[0.1em]">
-                          <th className="p-5 font-bold border-b border-gray-100">Period</th>
-                          <th className="p-5 font-bold border-b border-gray-100">Project ID</th>
-                          <th className="p-5 font-bold border-b border-gray-100 w-64">Project Name</th>
-                          <th className="p-5 font-bold border-b border-gray-100">Category</th>
-                          <th className="p-5 font-bold border-b border-gray-100 text-right">Quota</th>
-                          <th className="p-5 font-bold border-b border-gray-100 text-right">Total Comp.</th>
-                          <th className="p-5 font-bold border-b border-gray-100 text-right">AP Comp.</th>
-                          <th className="p-5 font-bold border-b border-gray-100 text-center">IR% Status</th>
-                          <th className="p-5 font-bold border-b border-gray-100 text-center">LOI Status</th>
-                          <th className="p-5 font-bold border-b border-gray-100 text-right">Working Days</th>
-                          <th className="p-5 font-bold border-b border-gray-100 text-right">Total Cost</th>
-                          <th className="p-5 font-bold border-b border-gray-100 text-right">CPI (USD)</th>
-                          <th className="p-5 font-bold border-b border-gray-100 text-right">CPI (THB)</th>
-                          <th className="p-5 font-bold border-b border-gray-100 text-center">Status</th>
+                      <tr className="bg-gray-50 text-gray-500">
+                          <SortableHeader label="Period" sortKey="month" filterKey="month" className="min-w-[100px]" />
+                          <SortableHeader label="Project ID" sortKey="project_no" filterKey="project_no" className="min-w-[120px]" />
+                          <SortableHeader label="Project Name" sortKey="project_name" filterKey="project_name" className="w-64" />
+                          <SortableHeader label="Category" sortKey="category" filterKey="category" className="min-w-[120px]" />
+                          <SortableHeader label="Quota" sortKey="quota" className="text-right" />
+                          <SortableHeader label="Total Comp." sortKey="totalComplete" className="text-right" />
+                          <SortableHeader label="AP Comp." sortKey="apComplete" className="text-right" />
+                          <SortableHeader label="IR% Status" sortKey="ir" className="text-center" />
+                          <SortableHeader label="LOI Status" sortKey="loi" className="text-center" />
+                          <SortableHeader label="Working Days" sortKey="workingDay" className="text-right" />
+                          <SortableHeader label="Total Cost" sortKey="apCost" className="text-right" />
+                          <SortableHeader label="CPI (USD)" sortKey="per_cpi_usd" className="text-right" />
+                          <SortableHeader label="CPI (THB)" sortKey="per_cpi_thb" className="text-right" />
+                          <SortableHeader label="Status" sortKey="kpi_39" className="text-center" />
                       </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 bg-white">
