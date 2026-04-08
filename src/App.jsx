@@ -12,7 +12,7 @@ import {
 // --- Configuration ---
 const MAIN_DATA_SHEET_ID = '1f1cUsWsRcS-I7VdVEVj1oLyalTtJLlCVnzUiWh77ff0';
 const AUTH_DATA_SHEET_ID = '144YySNLbFulSD3bRVeRCxe5PoyrLPl5-vvuVLS8uVds';
-const DASHBOARD_VERSION = "11-0326OP-DA"; // Update Version: 11-0326OP-DA (Header Sort & Filter)
+const DASHBOARD_VERSION = "12-0426OP-DA"; // Update Version: 12-0426OP-DA (Header Title)
 const RATE_CARD_URL = "https://ratecard-gold-theta.vercel.app/";
 
 const getCsvUrl = (id) => `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv`;
@@ -758,7 +758,7 @@ const App = () => {
     <div className="bg-gray-50 min-h-screen font-sans text-gray-800 p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-indigo-900 tracking-tight">Panel Report Dashboard 2025</h1>
+          <h1 className="text-3xl font-extrabold text-indigo-900 tracking-tight">DA | Panel Report Dashboard</h1>
           <div className="flex flex-wrap items-center gap-2 mt-1">
             <span className="text-gray-500 text-sm">Real-time Performance Overview</span>
             <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Role: {String(currentUser?.Role || 'User')}</span>
