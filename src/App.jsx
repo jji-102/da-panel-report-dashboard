@@ -10,9 +10,9 @@ import {
 } from 'lucide-react';
 
 // --- Configuration ---
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqwMeJuabIYX3sv05fjbdaXRhAQ0eYWfn4EORyURPfxgHcX00sLzh3jzD_Ie4afIdj1Q/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9CU0O0fDxIENp2-0pMPlTmvHh_c_hEGQrH-knuA8H7vJS_trmZ05MWgcxBaQ_9s63jw/exec";
 const SECRET_KEY = "APdashboard";
-const DASHBOARD_VERSION = "13-0426OP-DA";
+const DASHBOARD_VERSION = "14-0426OP-DA";
 const RATE_CARD_URL = "https://ratecard-gold-theta.vercel.app/";
 
 const IS_DEV = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
