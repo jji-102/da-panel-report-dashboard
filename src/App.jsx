@@ -10,12 +10,15 @@ import {
 } from 'lucide-react';
 
 // --- Configuration ---
-const MAIN_DATA_SHEET_ID = '1f1cUsWsRcS-I7VdVEVj1oLyalTtJLlCVnzUiWh77ff0';
-const AUTH_DATA_SHEET_ID = '144YySNLbFulSD3bRVeRCxe5PoyrLPl5-vvuVLS8uVds';
-const DASHBOARD_VERSION = "12-0426OP-DA"; // Update Version: 12-0426OP-DA (Header Title)
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqwMeJuabIYX3sv05fjbdaXRhAQ0eYWfn4EORyURPfxgHcX00sLzh3jzD_Ie4afIdj1Q/exec";
+const SECRET_KEY = "APdashboard";
+const DASHBOARD_VERSION = "13-0426OP-DA";
 const RATE_CARD_URL = "https://ratecard-gold-theta.vercel.app/";
 
-const getCsvUrl = (id) => `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv`;
+const IS_DEV = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const getApiUrl = (type) => IS_DEV
+  ? `/mock/${type}.json`
+  : `${APPS_SCRIPT_URL}?key=${SECRET_KEY}&type=${type}`;
 
 // --- Utility Functions ---
 const parseCSV = (csv) => {
@@ -359,7 +362,6 @@ const ProjectModal = ({ project, onClose }) => {
   );
 };
 
-// --- Generic Project List Modal ---
 const ProjectListModal = ({ title, subtitle, projects, onProjectSelect, onClose }) => {
   if (!title) return null;
   return (
@@ -462,12 +464,12 @@ const App = () => {
     return { totalProjects, thbCost, apCost, targetQuota, allComplete, apComplete, meowComplete, fwComplete, badSample, allAnswers, avgIr, avgLoi, avgCpiUsd, avgCpiThb, kpiRate };
   };
 
+  // --- [CHANGED] ดึงข้อมูล Auth ผ่าน Apps Script แทน CSV โดยตรง ---
   useEffect(() => {
     const fetchAuth = async () => {
       try {
-        const response = await fetch(getCsvUrl(AUTH_DATA_SHEET_ID));
-        const csvText = await response.text();
-        const parsed = parseCSV(csvText);
+        const response = await fetch(getApiUrl('auth'));
+        const parsed = await response.json();
         setAuthData(parsed);
       } catch (err) { console.error("Auth Fetch Error:", err); } 
       finally { setIsLoadingAuth(false); }
@@ -475,12 +477,12 @@ const App = () => {
     fetchAuth();
   }, []);
 
+  // --- [CHANGED] ดึงข้อมูล Main Data ผ่าน Apps Script แทน CSV โดยตรง ---
   const refreshMainData = async () => {
     setIsDataLoading(true);
     try {
-      const response = await fetch(getCsvUrl(MAIN_DATA_SHEET_ID));
-      const csvText = await response.text();
-      const parsed = parseCSV(csvText);
+      const response = await fetch(getApiUrl('main'));
+      const parsed = await response.json();
       const processed = processData(parsed);
       setData(processed);
       const years = [...new Set(processed.map(d => d.year.toString()))].sort((a,b) => b-a);
@@ -511,7 +513,6 @@ const App = () => {
   };
 
   const filteredData = useMemo(() => {
-    // 1. Apply Filters & Global Search
     let result = data.filter(d => {
       const matchesGlobalFilters = (
         (filters.projectType.length === 0 || filters.projectType.includes(d.project_type_mapped)) &&
@@ -523,7 +524,6 @@ const App = () => {
       const searchLower = searchTerm.toLowerCase();
       const matchesGlobalSearch = (searchTerm === '' || d.project_no?.toLowerCase().includes(searchLower) || d.project_name?.toLowerCase().includes(searchLower));
 
-      // 2. Apply Column Filters
       const matchesColumnFilters = Object.keys(columnFilters).every(key => {
         if (!columnFilters[key]) return true;
         const val = String(d[key] || '').toLowerCase();
@@ -533,18 +533,15 @@ const App = () => {
       return matchesGlobalFilters && matchesGlobalSearch && matchesColumnFilters;
     });
 
-    // 3. Apply Sorting
     if (sortConfig.key) {
       result.sort((a, b) => {
         let aVal = a[sortConfig.key];
         let bVal = b[sortConfig.key];
 
-        // Handle numeric fields
         if (!isNaN(aVal) && !isNaN(bVal) && typeof aVal !== 'string') {
           return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
         }
         
-        // Handle strings
         aVal = String(aVal || '').toLowerCase();
         bVal = String(bVal || '').toLowerCase();
         if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
@@ -710,7 +707,6 @@ const App = () => {
     );
   }
 
-  // --- Header Cell Component ---
   const SortableHeader = ({ label, sortKey, filterKey, className = "" }) => {
     const isSorted = sortConfig.key === sortKey;
     return (
@@ -758,7 +754,7 @@ const App = () => {
     <div className="bg-gray-50 min-h-screen font-sans text-gray-800 p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-indigo-900 tracking-tight">DA | Panel Report Dashboard</h1>
+          <h1 className="text-3xl font-extrabold text-indigo-900 tracking-tight">Panel Report Dashboard 2025</h1>
           <div className="flex flex-wrap items-center gap-2 mt-1">
             <span className="text-gray-500 text-sm">Real-time Performance Overview</span>
             <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Role: {String(currentUser?.Role || 'User')}</span>
@@ -989,7 +985,6 @@ const App = () => {
           </div>
       </div>
 
-      {/* Popups */}
       {selectedCategoryName && (
         <ProjectListModal 
           title={`Category: ${selectedCategoryName}`} 

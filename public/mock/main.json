@@ -1,0 +1,13 @@
+[
+  {
+    "year": "2025", "month": "Jan", "quater": "1'25",
+    "project_no": "TH25001", "project_name": "Test Project A",
+    "project_type": "Client Project", "category": "FMCG",
+    "quota": "500", "ap_complete": "480", "meow_complete": "20",
+    "fw_complete": "0", "bad_sample": "10", "Answers": "600",
+    "ap_total_price_ap": "1440", "total_thb": "50400",
+    "ir": "70", "loi": "12", "working_day": "5",
+    "kpi_39": "Pass", "MBOKAKR": "1",
+    "ap_mobile": "1", "ap_3party": "0", "ap_rabbit": "0", "ap_pc": "0", "cint": "0"
+  }
+]
