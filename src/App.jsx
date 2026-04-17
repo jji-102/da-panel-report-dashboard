@@ -12,10 +12,11 @@ import {
 // --- Configuration ---
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9CU0O0fDxIENp2-0pMPlTmvHh_c_hEGQrH-knuA8H7vJS_trmZ05MWgcxBaQ_9s63jw/exec";
 const SECRET_KEY = "APdashboard";
-const DASHBOARD_VERSION = "14-0426OP-DA";
+const DASHBOARD_VERSION = "15-0426OP-DA"; // Update Note: Fix IR% display and add new panel distribution metrics
 const RATE_CARD_URL = "https://ratecard-gold-theta.vercel.app/";
 
-const IS_DEV = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+// Set IS_DEV to false or comment it out to use the real API on localhost
+const IS_DEV = false; // window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const getApiUrl = (type) => IS_DEV
   ? `/mock/${type}.json`
   : `${APPS_SCRIPT_URL}?key=${SECRET_KEY}&type=${type}`;
@@ -62,7 +63,8 @@ const processData = (rawData) => {
     const answers = parseFloat(row.Answers) || 0;
     const apCost = parseFloat(row.ap_total_price_ap) || 0;
     const totalThb = parseFloat(row.total_thb) || 0;
-    const ir = parseFloat(row.ir) || 0;
+    let rawIr = parseFloat(row.ir) || 0;
+    const ir = rawIr > 0 && rawIr <= 1 ? rawIr * 100 : rawIr;
     const loi = parseFloat(row.loi) || 0;
     const workingDay = parseFloat(row.working_day) || 0;
     
