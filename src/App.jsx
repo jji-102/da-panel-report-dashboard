@@ -12,7 +12,7 @@ import {
 // --- Configuration ---
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9CU0O0fDxIENp2-0pMPlTmvHh_c_hEGQrH-knuA8H7vJS_trmZ05MWgcxBaQ_9s63jw/exec";
 const SECRET_KEY = "APdashboard";
-const DASHBOARD_VERSION = "15-0426OP-DA"; // Update Note: Fix IR% display and add new panel distribution metrics
+const DASHBOARD_VERSION = "16-0426OP-DA"; // Update Note: Fix Global Search
 const RATE_CARD_URL = "https://ratecard-gold-theta.vercel.app/";
 
 // Set IS_DEV to false or comment it out to use the real API on localhost
@@ -524,7 +524,7 @@ const App = () => {
       );
 
       const searchLower = searchTerm.toLowerCase();
-      const matchesGlobalSearch = (searchTerm === '' || d.project_no?.toLowerCase().includes(searchLower) || d.project_name?.toLowerCase().includes(searchLower));
+      const matchesGlobalSearch = (searchTerm === '' || String(d.project_no || '').toLowerCase().includes(searchLower) || String(d.project_name || '').toLowerCase().includes(searchLower));
 
       const matchesColumnFilters = Object.keys(columnFilters).every(key => {
         if (!columnFilters[key]) return true;
